@@ -86,7 +86,7 @@ def find_tables(nt_base, start_addr, vm):
             if op.mnemonic == 'CMP' and op.operands[0].dispSize == 32 and op.operands[0].value == 0:
                 if op.size == 9:
                     service_tables.append(nt_base + op.operands[0].disp)
-                elif op.size == 7:
+                elif op.size in [7, 8]:
                     service_tables.append(op.address + op.size + op.operands[0].disp)
             elif op.mnemonic == 'LEA' and op.size == 7 and op.operands[1].dispSize == 32 and op.operands[1].disp > 0:
                 service_tables.append(nt_base + op.operands[1].disp)
@@ -224,6 +224,9 @@ class SSDT(common.AbstractWindowsCommand):
                     # These must be signed long for x64 because they are RVAs relative
                     # to the base of the table and can be negative. 
                     offset = obj.Object('long', table + (i * 4), vm).v()
+                    if offset == None:
+                        continue
+
                     # The offset is the top 20 bits of the 32 bit number. 
                     syscall_addr = table + (offset >> 4)
                 try:
@@ -293,6 +296,9 @@ class SSDT(common.AbstractWindowsCommand):
                     # These must be signed long for x64 because they are RVAs relative
                     # to the base of the table and can be negative. 
                     offset = obj.Object('long', table + (i * 4), vm).v()
+                    if offset == None:
+                        continue
+
                     # The offset is the top 20 bits of the 32 bit number. 
                     syscall_addr = table + (offset >> 4)
                 try:
